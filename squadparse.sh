@@ -64,6 +64,8 @@ for i in $NUMBERS ; do
 		-e 's/IIS-88/IG-88/g' \
 		-e 's/Qui-Bon/Qui-Gon/g' \
 		-e 's/Motf/Moff/g' \
+		-e 's/\[J/D/g' \
+		-e 's/ü/Q/g' \
 		-e 's/URORR/URoRR/g' )
 
 	# Parses the gear and fixes some weird symbols.

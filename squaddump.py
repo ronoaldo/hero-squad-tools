@@ -19,7 +19,7 @@ device = MonkeyRunner.waitForConnection()
 logging.info("Connected to device %s" % (device.getProperty('build.model')))
 
 # Folder used to save screenshots
-FOLDER = "/tmp/swgoh-squad/"
+FOLDER = "/tmp/swgoh-squad"
 
 def cleanup(signum, frame):
     signal.signal(signal.SIGINT, signal.getsignal(signal.SIGINT))
@@ -28,7 +28,7 @@ def cleanup(signum, frame):
 
 def snap(name, display=False):
     logging.debug('Taking screenshot of device ...')
-    f = FOLDER + name + '.png'
+    f = os.path.join(FOLDER, name + '.png')
     device.takeSnapshot().writeToFile(f, 'png')
 
     if display:
@@ -50,7 +50,8 @@ def touch(x, y):
     time.sleep(2)
 
 def main():
-    os.makedirs(FOLDER)
+    if not os.path.exists(FOLDER):
+        os.makedirs(FOLDER)
     logging.info("Initializing the program....")
     logging.info("*** Important! After you see a screenshot of your device, make sure the device")
     logging.info("    is awake and at the home of the game. Then click on the screenshot window on the PC")
