@@ -1,7 +1,7 @@
 # Hero Squad Tools
 
 Esse é um repositório de exemplos de como utilizar as ferramentas
-Image Magick, Tesseract OCR e GOCR para processamento de imagens
+Image Magick e Tesseract OCR para processamento de imagens
 utilizando scripts. Além disso, é um exemplo de como interagir
 com dispositivos Android por meio do `monkeyrunner`, automatizando
 tarefas repetitivas via depuração USB.
@@ -26,7 +26,7 @@ alguns dos inúmeros números mágicos do script para isso.*
 Você vai precisar de um comptuador com Linux instalado,
 da SDK do Android em seu `$PATH` e dos pacotes a seguir:
 
-	sudo apt-get install tesseract-ocr gocr imagemagick
+	sudo apt-get install tesseract-ocr imagemagick
 
 Em seguida, ative as ferramentas de desenvolvedor e a depuração USB
 em seu dispositivo Android. Depois de conectar o dispositivo, abra o jogo,
