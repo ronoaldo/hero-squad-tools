@@ -43,7 +43,7 @@ for i in $NUMBERS ; do
 	fi
 
 	# Parses the character level
-	level=$(convert -crop 43x39+102+875  $char - | $tess)
+	level=$(convert $char -crop 43x39+102+875 - | $tess digits)
 
 	# Parses the character power
 	power=$(convert -crop 82x40+1712+173 $char - |\
@@ -68,16 +68,26 @@ for i in $NUMBERS ; do
 		-e 's/ü/Q/g' \
 		-e 's/URORR/URoRR/g' )
 
-	# Parses the gear and fixes some weird symbols.
+	# Parses the gear and fixes some weird gear symbols.
 	gear="I"
 	if [ $level -gt 1 ] ; then
 		gear=$(convert $char -crop 258x54+675+835 -threshold 60% pnm:- | $tess | head)
 		gear=$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/\./. /g' -e 's/l/I/g' | awk '{print $3}')
 	fi
+	if [ x"$gear" == x"" ] ; then
+		gear="$(convert $char -crop 258x54+675+835 -negate -resize 800x600 - | $tess | head) "
+		gear=$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/\./. /g' -e 's/l/I/g' | awk '{print $3}')
+	fi
 
 	# Parses the required and current shard count for the next promotion/activation.
-	shards="$(convert -crop 45x46+1776+678 $char -resize 800x600 - | $tess | head)"
-	myshards="$(convert -crop 40x45+1718+678 $char -blur 0.9 - | convert - -sharpen 0x12 - | $tess digits)"
+	shards="$(convert $char -crop 45x46+1776+678  -resize 800x600 - | $tess | head)"
+	myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - | convert - -sharpen 0x12 - | $tess digits | awk '{print $1}')"
+	if [ x"$myshards" == x"" ] ; then
+		log "Retrying myshards ..."
+		myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - |\
+		convert - -sharpen 0x12 - |\
+			tesseract stdin stdout -psm 7 -l por)"
+	fi
 
 	# Parses the character health
 	health="$(convert -crop 227x88+626+676 $stat -resize 800x600 - | tesseract stdin stdout -psm 6 | head)"
