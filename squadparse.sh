@@ -53,39 +53,51 @@ for i in $NUMBERS ; do
 	# Parses and fixes the character name. This is the hardest part and the parameters
 	# bellow produced the best results possible.
 	name=$(convert -crop 586x44+348+91 -threshold 60% $stat - |\
-		convert - -resize 800x600 pnm:- | $tess)
+			convert - -resize 800x600 pnm:- | $tess)
 	name=$( echo "$name" | sed \
-		-e 's/Draide/Dróide/g' \
-		-e 's/\[IT-5555/CT-5555/g' \
-		-e 's/IG-I 00/IG-100/g' \
-		-e 's/l(on/Kylo/g' \
-		-e 's/Fase l/Fase I/g' \
-		-e 's/IIS-86/IG-86/g' \
-		-e 's/IIS-88/IG-88/g' \
-		-e 's/Qui-Bon/Qui-Gon/g' \
-		-e 's/Motf/Moff/g' \
-		-e 's/\[J/D/g' \
-		-e 's/ü/Q/g' \
-		-e 's/URORR/URoRR/g' )
+			-e 's/Draide/Dróide/g' \
+			-e 's/\[IT-5555/CT-5555/g' \
+			-e 's/IG-I 00/IG-100/g' \
+			-e 's/l(on/Kylo/g' \
+			-e 's/Fase l/Fase I/g' \
+			-e 's/IIS-86/IG-86/g' \
+			-e 's/IIS-88/IG-88/g' \
+			-e 's/Irã-86/IG-86/g' \
+			-e 's/Qui-Bon/Qui-Gon/g' \
+			-e 's/Motf/Moff/g' \
+			-e 's/\[J/D/g' \
+			-e 's/ü/Q/g' \
+			-e 's/FiStO/Fisto/g' \
+			-e 's/Clõnicas/Clônicas/g' \
+			-e 's/Suhmundo/Submundo/g' \
+			-e 's/Sto rmtrooper/Stormtrooper/g' \
+			-e 's/URORR/URoRR/g' )
 
 	# Parses the gear and fixes some weird gear symbols.
 	gear="I"
 	if [ $level -gt 1 ] ; then
-		gear=$(convert $char -crop 258x54+675+835 -threshold 60% pnm:- | $tess | head)
-		gear=$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/\./. /g' -e 's/l/I/g' | awk '{print $3}')
-	fi
-	if [ x"$gear" == x"" ] ; then
-		gear="$(convert $char -crop 258x54+675+835 -negate -resize 800x600 - | $tess | head) "
-		gear=$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/\./. /g' -e 's/l/I/g' | awk '{print $3}')
+		gear="$(convert $char -crop 258x54+675+835 -threshold 60% pnm:- | $tess | head)"
+		log "Gear first pass detection '$gear'"
+		gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' -e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
+		log "Detected gear '$gear'"
+		gear="$(echo $gear)"
+		if [ x"$gear" == x"" ] ; then
+			log "Trying again to detect gear ..."
+			gear="$(convert $char -crop 258x54+675+835 -negate -resize 800x600 pnm:- | $tess | head)"
+			gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' -e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
+			log "New detected gear '$gear'"
+		fi
 	fi
 
 	# Parses the required and current shard count for the next promotion/activation.
-	shards="$(convert $char -crop 45x46+1776+678  -resize 800x600 - | $tess | head)"
-	myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - | convert - -sharpen 0x12 - | $tess digits | awk '{print $1}')"
+	removebg="-fuzz 10% -fill #1d4553 -opaque #67cedc -opaque #6dd3e0 -opaque #9afeff -opaque #9bffff -opaque #68b3b9 -opaque #68acb4"
+	shards="$(  convert $char -crop 45x46+1776+678 - | convert $removebg -resize 800x600 - png:- | $tess digits | head)"
+	myshards="$(convert $char -crop 40x45+1718+678 - | convert $removebg -resize 800x600 - png:- | $tess digits | head)"
+	#myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - | convert - -sharpen 0x12 - | $tess digits | awk '{print $1}')"
 	if [ x"$myshards" == x"" ] ; then
 		log "Retrying myshards ..."
 		myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - |\
-		convert - -sharpen 0x12 - |\
+			convert - -sharpen 0x12 - |\
 			tesseract stdin stdout -psm 7 -l por)"
 	fi
 
