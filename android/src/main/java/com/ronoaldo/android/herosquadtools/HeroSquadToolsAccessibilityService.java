@@ -13,7 +13,11 @@ public class HeroSquadToolsAccessibilityService extends AccessibilityService {
 	@Override
 	public void onAccessibilityEvent(AccessibilityEvent event) {
 		Log.v(TAG, "New event received: " + event.toString());
-		Log.v(TAG, "Root in active window: " + this.getRootInActiveWindow());
+		AccessibilityNodeInfo rootWin = this.getRootInActiveWindow();
+		if (rootWin != null) {
+			Log.v(TAG, "Root in active window: " + rootWin);
+			Log.v(TAG, "isClickable? " + rootWin.isClickable());
+		}
 	}
 
 	@Override
