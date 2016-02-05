@@ -43,7 +43,8 @@ for i in $NUMBERS ; do
 	fi
 
 	# Parses the character level
-	level=$(convert $char -crop 43x39+102+875 - | $tess digits)
+	level="$(convert $char -crop 43x39+102+875 - |\
+		convert -fuzz 10% -fill red +opaque '#fdfdfd' - png:- | $tess digits)"
 
 	# Parses the character power
 	power=$(convert -crop 82x40+1712+173 $char - |\
@@ -76,35 +77,36 @@ for i in $NUMBERS ; do
 	# Parses the gear and fixes some weird gear symbols.
 	gear="I"
 	if [ $level -gt 1 ] ; then
-		gear="$(convert $char -crop 258x54+675+835 -threshold 60% pnm:- | $tess | head)"
-		log "Gear first pass detection '$gear'"
-		gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' -e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
-		log "Detected gear '$gear'"
-		gear="$(echo $gear)"
-		if [ x"$gear" == x"" ] ; then
-			log "Trying again to detect gear ..."
-			gear="$(convert $char -crop 258x54+675+835 -negate -resize 800x600 pnm:- | $tess | head)"
+		for color in "#00ffff" "#7616ab" ; do
+			gear="$(convert $char -crop 258x54+675+835 pnm:- |\
+					convert -fuzz 20% +opaque "$color" - png:- | $tess)"
+			log "Gear OCR result '$gear'"
 			gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' -e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
-			log "New detected gear '$gear'"
-		fi
+			log "Detected gear: '$gear'"
+			gear="$(echo $gear)"
+			if [ x"$gear" != x"" ] ; then
+				break
+			fi
+		done	
 	fi
 
 	# Parses the required and current shard count for the next promotion/activation.
 	removebg="-fuzz 10% -fill #1d4553 -opaque #67cedc -opaque #6dd3e0 -opaque #9afeff -opaque #9bffff -opaque #68b3b9 -opaque #68acb4"
 	shards="$(  convert $char -crop 45x46+1776+678 - | convert $removebg -resize 800x600 - png:- | $tess digits | head)"
 	myshards="$(convert $char -crop 40x45+1718+678 - | convert $removebg -resize 800x600 - png:- | $tess digits | head)"
-	#myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - | convert - -sharpen 0x12 - | $tess digits | awk '{print $1}')"
 	if [ x"$myshards" == x"" ] ; then
 		log "Retrying myshards ..."
 		myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - |\
 			convert - -sharpen 0x12 - |\
 			tesseract stdin stdout -psm 7 -l por)"
 	fi
+	shards="$(echo $shards | sed -e 's/[^0-9]//g')"
+	myshards="$(echo $myshards | sed -e 's/[^0-9]//g')"
 
 	# Parses the character health
-	health="$(convert -crop 227x88+626+676 $stat -resize 800x600 - | tesseract stdin stdout -psm 6 | head)"
+	health="$(convert -crop 227x88+626+676 $stat -resize 800x600 - |\
+				tesseract stdin stdout -psm 6 | head)"
 	health="$(echo "$health" | tr -d '(' | tr -d ')' | bc)"
-	
 
 	# Fetch star rating. Tricky, but works just fine.
 	# 1. We convert the image into black and white, after blurring/sharpenning,

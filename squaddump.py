@@ -11,7 +11,7 @@ import subprocess, os, sys, time, logging, signal
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 os.putenv('LANG', 'C')
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Global reference to the device
 logging.info("Waiting for device ...")
@@ -46,7 +46,8 @@ def launch():
 
 def touch(x, y):
     logging.debug("Sending touch event %d, %d", x, y)
-    device.touch(x, y, MonkeyDevice.DOWN_AND_UP)
+    res = device.touch(x, y, MonkeyDevice.DOWN_AND_UP)
+    logging.debug("Touch result: %s", res)
     time.sleep(2)
 
 def main():
