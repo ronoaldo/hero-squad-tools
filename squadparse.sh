@@ -90,24 +90,6 @@ for i in $NUMBERS ; do
 		done	
 	fi
 
-	# Parses the required and current shard count for the next promotion/activation.
-	removebg="-fuzz 10% -fill #1d4553 -opaque #67cedc -opaque #6dd3e0 -opaque #9afeff -opaque #9bffff -opaque #68b3b9 -opaque #68acb4"
-	shards="$(  convert $char -crop 45x46+1776+678 - | convert $removebg -resize 800x600 - png:- | $tess digits | head)"
-	myshards="$(convert $char -crop 40x45+1718+678 - | convert $removebg -resize 800x600 - png:- | $tess digits | head)"
-	if [ x"$myshards" == x"" ] ; then
-		log "Retrying myshards ..."
-		myshards="$(convert $char -crop 40x45+1718+678 -blur 0.9 - |\
-			convert - -sharpen 0x12 - |\
-			tesseract stdin stdout -psm 7 -l por)"
-	fi
-	shards="$(echo $shards | sed -e 's/[^0-9]//g')"
-	myshards="$(echo $myshards | sed -e 's/[^0-9]//g')"
-
-	# Parses the character health
-	health="$(convert -crop 227x88+626+676 $stat -resize 800x600 - |\
-				tesseract stdin stdout -psm 6 | head)"
-	health="$(echo "$health" | tr -d '(' | tr -d ')' | bc)"
-
 	# Fetch star rating. Tricky, but works just fine.
 	# 1. We convert the image into black and white, after blurring/sharpenning,
 	#	so we have a temp file with white circles.
@@ -122,11 +104,34 @@ for i in $NUMBERS ; do
 		let starcount--
 	done
 
+	# Parses the required and current shard count for the next promotion/activation.
+	case $starcount in
+		1) export shards=15 ;;
+		2) export shards=25 ;;
+		3) export shards=30 ;;
+		4) export shards=65 ;;
+		5) export shards=85 ;;
+		6) export shards=100;;
+	esac
+	_shard_data="$(convert $char -crop 100x45+1718+678 -resize 350x350 - |\
+				convert -fill black -fuzz 10% +opaque "#f3f3f5" - png:- |\
+				$tess digits)"
+	log "_shard_data=${_shard_data}"
+	myshards="$(echo $_shard_data | awk '{print $1}')"
+	if [ $starcount -eq 0 ] ; then
+		export shards="$(echo $_shard_data | awk '{print $2}')"
+	fi
+
+	# Parses the character health
+	health="$(convert -crop 227x88+626+676 $stat -resize 800x600 - |\
+				tesseract stdin stdout -psm 6 | head)"
+	health="$(echo "$health" | tr -d '(' | tr -d ')' | bc)"
+
 	# Here we get all stats in CSV format
 	# printf "%6s;%3s;%2s;%2s;%3s;%s;%s\n" "${power}" "${level}" "${myshards}" "${shards}" "${gear}" "${starcount}" "${name}"
-	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" "${power}" "${level}" "${starcount}" "${gear}" "${health}" "${myshards}" "${shards}" "${name}" 
+	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s (%s)\n" "${power}" "${level}" "${starcount}" "${gear}" "${health}" "${myshards}" "${shards}" "${name}" "${i}"
 
-	# Finally, we crop the character pictures. 
+	# Finally, we crop the character pictures to be able to use them for other pourposes. 
 	convert -crop 317x596+802+246 $char "${FOLDER}/heroes/thumbs/${name}.png"
 	convert -crop 88x88+1522+742  $char "${FOLDER}/heroes/shards/${name}.png"
 done
