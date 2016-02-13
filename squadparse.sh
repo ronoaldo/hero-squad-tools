@@ -77,9 +77,9 @@ for i in $NUMBERS ; do
 	# Parses the gear and fixes some weird gear symbols.
 	gear="I"
 	if [ $level -gt 1 ] ; then
-		for color in "#00ffff" "#7616ab" ; do
+		for color in "#00bdff" "#9341ff" ; do
 			gear="$(convert $char -crop 258x54+675+835 pnm:- |\
-					convert -fuzz 20% +opaque "$color" - png:- | $tess)"
+					convert -fuzz 10% +opaque "$color" - png:- | $tess)"
 			log "Gear OCR result '$gear'"
 			gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' -e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
 			log "Detected gear: '$gear'"
