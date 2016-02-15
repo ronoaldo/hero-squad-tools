@@ -26,7 +26,7 @@ log() {
 echo -e "power\tlevel\tstars\tgear\thealth\tshards1\tshards2\tname"
 
 # Loop over all characters ...
-NUMBERS="$(seq 0 70)"
+NUMBERS="$(seq 0 72)"
 if [ $# -ge 1 ] ; then
 	export NUMBERS="$@"
 fi
@@ -57,7 +57,7 @@ for i in $NUMBERS ; do
 			convert - -resize 800x600 pnm:- | $tess)
 	name=$( echo "$name" | sed \
 			-e 's/Draide/Dróide/g' \
-			-e 's/\[IT-5555/CT-5555/g' \
+			-e 's/\[IT-/CT-/g' \
 			-e 's/IG-I 00/IG-100/g' \
 			-e 's/l(on/Kylo/g' \
 			-e 's/Fase l/Fase I/g' \
@@ -65,6 +65,7 @@ for i in $NUMBERS ; do
 			-e 's/IIS-88/IG-88/g' \
 			-e 's/Irã-86/IG-86/g' \
 			-e 's/Qui-Bon/Qui-Gon/g' \
+			-e 's/Gui-Gun/Qui-Gon/g' \
 			-e 's/Motf/Moff/g' \
 			-e 's/\[J/D/g' \
 			-e 's/ü/Q/g' \
@@ -77,7 +78,7 @@ for i in $NUMBERS ; do
 	# Parses the gear and fixes some weird gear symbols.
 	gear="I"
 	if [ $level -gt 1 ] ; then
-		for color in "#00bdff" "#9341ff" ; do
+		for color in "#99ff33" "#00bdff" "#9341ff" ; do
 			gear="$(convert $char -crop 258x54+675+835 pnm:- |\
 					convert -fuzz 10% +opaque "$color" - png:- | $tess)"
 			log "Gear OCR result '$gear'"
@@ -88,6 +89,8 @@ for i in $NUMBERS ; do
 				break
 			fi
 		done	
+	else
+		gear="I"
 	fi
 
 	# Fetch star rating. Tricky, but works just fine.
@@ -113,7 +116,7 @@ for i in $NUMBERS ; do
 		5) export shards=85 ;;
 		6) export shards=100;;
 	esac
-	_shard_data="$(convert $char -crop 100x45+1718+678 -resize 350x350 - |\
+	_shard_data="$(convert $char -crop  120x45+1700+678 -resize 400x400 - |\
 				convert -fill black -fuzz 10% +opaque "#f3f3f5" - png:- |\
 				$tess digits)"
 	log "_shard_data=${_shard_data}"

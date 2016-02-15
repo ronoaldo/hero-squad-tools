@@ -69,7 +69,7 @@ def main():
     touch(213, 386)
     time.sleep(1)
     # Print all chars
-    for i in range(71):
+    for i in range(73):
         logging.info("*** Snapping character #%d ...", i)
         logging.info("    Capturing basic info ...")
         snap('character-%02d-char' % i)
