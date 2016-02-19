@@ -121,9 +121,10 @@ for i in $NUMBERS ; do
 				$tess digits)"
 	log "_shard_data=${_shard_data}"
 	myshards="$(echo $_shard_data | awk '{print $1}')"
-	if [ $starcount -eq 0 ] ; then
-		export shards="$(echo $_shard_data | awk '{print $2}')"
-	fi
+	case $starcount in
+		0) export shards="$(echo $_shard_data | awk '{print $2}')" ;;
+		7) export shards=0 myshards=0 ;;
+	esac
 
 	# Parses the character health
 	health="$(convert -crop 227x88+626+676 $stat -resize 800x600 - |\
