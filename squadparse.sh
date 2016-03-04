@@ -26,7 +26,7 @@ log() {
 echo -e "power\tlevel\tstars\tgear\thealth\tshards1\tshards2\tname"
 
 # Loop over all characters ...
-NUMBERS="$(seq 0 72)"
+NUMBERS="$(seq 0 74)"
 if [ $# -ge 1 ] ; then
 	export NUMBERS="$@"
 fi
@@ -82,7 +82,8 @@ for i in $NUMBERS ; do
 			gear="$(convert $char -crop 258x54+675+835 pnm:- |\
 					convert -fuzz 10% +opaque "$color" - png:- | $tess)"
 			log "Gear OCR result '$gear'"
-			gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' -e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
+			gear="$(echo "$gear" | sed -e 's/\\Í/VI/g' -e 's/l/I/g' \
+				-e "s/'/ /g" -e 's/[^a-zA-Z]/ /g' | awk '{print $NF}')"
 			log "Detected gear: '$gear'"
 			gear="$(echo $gear)"
 			if [ x"$gear" != x"" ] ; then
@@ -92,6 +93,17 @@ for i in $NUMBERS ; do
 	else
 		gear="I"
 	fi
+	case $gear in
+		I) export gear="1";;
+		II) export gear="2";;
+		III) export gear="3";;
+		IV) export gear="4";;
+		V) export gear="5";;
+		VI) export gear="6";;
+		VII) export gear="7";;
+		VIII) export gear="8";;
+		IX) export gear="9";;
+	esac
 
 	# Fetch star rating. Tricky, but works just fine.
 	# 1. We convert the image into black and white, after blurring/sharpenning,
@@ -132,8 +144,8 @@ for i in $NUMBERS ; do
 	health="$(echo "$health" | tr -d '(' | tr -d ')' | bc)"
 
 	# Here we get all stats in CSV format
-	# printf "%6s;%3s;%2s;%2s;%3s;%s;%s\n" "${power}" "${level}" "${myshards}" "${shards}" "${gear}" "${starcount}" "${name}"
-	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s (%s)\n" "${power}" "${level}" "${starcount}" "${gear}" "${health}" "${myshards}" "${shards}" "${name}" "${i}"
+	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s (%s)\n" \
+		"${power}" "${level}" "${starcount}" "${gear}" "${health}" "${myshards}" "${shards}" "${name}" "${i}"
 
 	# Finally, we crop the character pictures to be able to use them for other pourposes. 
 	convert -crop 317x596+802+246 $char "${FOLDER}/heroes/thumbs/${name}.png"
